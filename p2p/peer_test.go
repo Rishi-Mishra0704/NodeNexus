@@ -9,16 +9,18 @@ import (
 )
 
 func TestPeerConnect_Success(t *testing.T) {
+	addr, err := findAvailablePort()
+	assert.NoError(t, err)
 	// Mock peer data
 	mockPeer := &Peer{
 		ID:   "peer1",
-		Addr: "127.0.0.1:8090",
+		Addr: addr,
 	}
 
 	// Mock TCP connection
-	mockConn, err := net.Dial("tcp", "localhost:8090")
+	mockServer, err := net.Listen("tcp", addr)
 	assert.NoError(t, err)
-	defer mockConn.Close()
+	defer mockServer.Close()
 
 	// Attempt to connect to the mock peer
 	conn, err := mockPeer.Connect()
