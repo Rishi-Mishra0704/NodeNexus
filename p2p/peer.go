@@ -2,12 +2,15 @@ package p2p
 
 import "fmt"
 
+// Peer represents a peer in the peer-to-peer network.
 type Peer struct {
 	ID   string
 	IP   string
 	Port int
 }
 
+// NewPeer creates a new Peer with the given ID, IP, and port.
+// It returns a pointer to the new Peer.
 func NewPeer(id, ip string, port int) *Peer {
 	return &Peer{
 		ID:   id,
