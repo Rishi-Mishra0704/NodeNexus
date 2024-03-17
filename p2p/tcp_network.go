@@ -8,7 +8,7 @@ import (
 
 // TCPNetwork represents a TCP-based peer-to-peer network.
 type TCPNetwork struct {
-	listener net.Listener
+	Listener net.Listener
 	peers    map[string]net.Conn
 }
 
@@ -25,7 +25,7 @@ func (tn *TCPNetwork) Start() error {
 	if err != nil {
 		return err
 	}
-	tn.listener = listener
+	tn.Listener = listener
 	log.Println("TCP network started on :8080")
 	return nil
 }
@@ -39,4 +39,12 @@ func (tn *TCPNetwork) Connect(peer *Peer) error {
 	tn.peers[peer.ID] = conn
 	log.Printf("Connected to peer %s\n", peer.Addr)
 	return nil
+}
+
+// Close closes the TCP network.
+func (tn *TCPNetwork) Close() error {
+	for _, conn := range tn.peers {
+		conn.Close()
+	}
+	return tn.Listener.Close()
 }
