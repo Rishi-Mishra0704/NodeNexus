@@ -20,13 +20,13 @@ func NewTCPNetwork() *TCPNetwork {
 }
 
 // Start starts the TCP network by listening for incoming connections.
-func (tn *TCPNetwork) Start() error {
-	listener, err := net.Listen("tcp", ":8080")
+func (tn *TCPNetwork) Start(port string) error {
+	listener, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		return err
 	}
 	tn.Listener = listener
-	log.Println("TCP network started on :8080")
+	log.Printf("TCP network started on port %s\n", port)
 	return nil
 }
 

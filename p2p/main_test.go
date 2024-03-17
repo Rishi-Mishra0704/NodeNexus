@@ -7,7 +7,7 @@ import (
 
 func setup() *TCPNetwork {
 	tn := NewTCPNetwork()
-	err := tn.Start()
+	err := tn.Start("8080")
 	if err != nil {
 		log.Fatalf("Failed to start TCP network: %v", err)
 	}
