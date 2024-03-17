@@ -37,11 +37,8 @@
 
 ### Key Features <a name="key-features"></a>
 
-- **WebSocket Communication**: Utilizes WebSocket technology for real-time, bidirectional communication between the server and connected clients.
-- **Cross-Origin Resource Sharing (CORS)**: Implements CORS to allow cross-origin requests, enabling collaboration across different domains.
-- **Simple Message Structure**: Defines a simple message structure for exchanging code content and file extensions between clients and the server.
-- **Efficient Broadcasting**: Broadcasts messages efficiently to all connected clients, ensuring synchronized collaboration.
-
+- **TCP Network**: Utilized for real-time, bidirectional communication between the server and connected clients over TCP network.
+    - **Decentralized Network**: A decentralized network is a type of network architecture where the control and decision-making authority are distributed among multiple nodes or participants, rather than being concentrated in a single central entity.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- GETTING STARTED -->
@@ -75,7 +72,7 @@ git clone https://github.com/Rishi-Mishra0704/NodeNexus
 To run the project, execute the following command:
 
 ```bash
-cd cc_editor_server
+cd NodeNexus
 go get ./...
 ```
 
