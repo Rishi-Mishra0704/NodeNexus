@@ -1,25 +1,23 @@
 package p2p
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+	"net"
+)
 
-// Peer represents a peer in the peer-to-peer network.
+// Peer represents a peer in the decentralized chat network.
 type Peer struct {
-	ID   string
-	IP   string
-	Port int
+	ID   string // Unique identifier for the peer
+	Addr string // Address of the peer (host:port)
 }
 
-// NewPeer creates a new Peer with the given ID, IP, and port.
-// It returns a pointer to the new Peer.
-func NewPeer(id, ip string, port int) *Peer {
-	return &Peer{
-		ID:   id,
-		IP:   ip,
-		Port: port,
+// Connect establishes a connection to the specified peer.
+func (p *Peer) Connect() (net.Conn, error) {
+	conn, err := net.Dial("tcp", p.Addr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to peer %s: %w", p.Addr, err)
 	}
-}
-
-// String returns a string representation of the Peer.
-func (p *Peer) String() string {
-	return fmt.Sprintf("Peer(ID: %s, IP: %s, Port: %d)", p.ID, p.IP, p.Port)
+	log.Printf("Connected to peer %s\n", p.Addr)
+	return conn, nil
 }
