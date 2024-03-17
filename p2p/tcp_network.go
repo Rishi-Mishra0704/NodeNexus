@@ -43,8 +43,16 @@ func (tn *TCPNetwork) Connect(peer *Peer) error {
 
 // Close closes the TCP network.
 func (tn *TCPNetwork) Close() error {
-	for _, conn := range tn.peers {
-		conn.Close()
+	if tn.Listener != nil {
+		// Close all peer connections
+		for _, conn := range tn.peers {
+			conn.Close()
+		}
+
+		// Close the listener and reset it to nil
+		err := tn.Listener.Close()
+		tn.Listener = nil // Reset the listener
+		return err
 	}
-	return tn.Listener.Close()
+	return nil
 }
