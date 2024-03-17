@@ -38,7 +38,7 @@
 ### Key Features <a name="key-features"></a>
 
 - **TCP Network**: Utilized for real-time, bidirectional communication between the server and connected clients over TCP network.
-    - **Decentralized Network**: A decentralized network is a type of network architecture where the control and decision-making authority are distributed among multiple nodes or participants, rather than being concentrated in a single central entity.
+- **Decentralized Network**: A decentralized network is a type of network architecture where the control and decision-making authority are distributed among multiple nodes or participants, rather than being concentrated in a single central entity.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- GETTING STARTED -->
@@ -87,13 +87,13 @@ go run main.go
 ## 👥 Authors <a name="authors"></a>
 
 👤 **Rishi_Mishra**
-👤 **Nikhil_Parbat**
+
 
 - GitHub: [@githubhandle](https://github.com/Rishi-Mishra0704)
 - Twitter: [@twitterhandle](https://twitter.com/RishiMi31357764)
 - LinkedIn: [LinkedIn](https://www.linkedin.com/in/rrmishra/)
 
-
+👤 **Nikhil_Parbat**
 - GitHub: [@githubhandle](https://github.com/NikhilParbat)
 - Twitter: [@twitterhandle](https://twitter.com/NParbat57571)
 - LinkedIn: [LinkedIn](www.linkedin.com/in/nikhil-parbat)
@@ -113,7 +113,7 @@ go run main.go
 
 ## 🙏 Acknowledgments <a name="acknowledgements"></a>
 
-I would like to thank HackSwift for giving me the opportunity to work on this project.
+I would like to thank CrackDevs for giving me the opportunity to work on this project.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
