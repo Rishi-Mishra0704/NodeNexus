@@ -17,7 +17,7 @@
 
 <!-- PROJECT DESCRIPTION -->
 
-# 📖 [CC_Collaboration_server] <a name="about-project"></a>
+# 📖 [NodeNexus] <a name="about-project"></a>
 
 > NodeNexus: Decentralized chat app revolutionizing communication, freeing it from central servers. Connect globally, securely, autonomously
 
@@ -29,8 +29,7 @@
   <summary>Server</summary>
   <ul>
     <li><a href="#">Golang</a></li>
-    <li><a href="#">Gin Framework</a></li>
-    <li><a href="#">Websockets</a></li>
+    <li><a href="#">TCP</a></li>
   </ul>
 </details>
 
@@ -57,7 +56,6 @@ In order to run this project you need:
 
 <ul>
     <li>Go</li>
-    <li>Gin Framework</li>
     <li>Internet</li>
 </ul>
 
@@ -69,7 +67,7 @@ Example commands:
 
 ```bash
 cd my-folder
-git clone https://github.com/Rishi-Mishra0704/cc_editor_server
+git clone https://github.com/Rishi-Mishra0704/NodeNexus
 ```
 
 ### Usage
@@ -92,10 +90,17 @@ go run main.go
 ## 👥 Authors <a name="authors"></a>
 
 👤 **Rishi_Mishra**
+👤 **Nikhil_Parbat**
 
 - GitHub: [@githubhandle](https://github.com/Rishi-Mishra0704)
 - Twitter: [@twitterhandle](https://twitter.com/RishiMi31357764)
 - LinkedIn: [LinkedIn](https://www.linkedin.com/in/rrmishra/)
+
+
+- GitHub: [@githubhandle](https://github.com/NikhilParbat)
+- Twitter: [@twitterhandle](https://twitter.com/NParbat57571)
+- LinkedIn: [LinkedIn](www.linkedin.com/in/nikhil-parbat)
+
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
