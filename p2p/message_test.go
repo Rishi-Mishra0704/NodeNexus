@@ -53,3 +53,54 @@ func TestSend(t *testing.T) {
 	// Assertions
 	assert.NoError(t, err)
 }
+
+func TestReceive(t *testing.T) {
+	// Create a new TCPNetwork instance
+	tn := setup()
+	defer teardown(tn)
+
+	// Find an available port
+	addr, err := findAvailablePort()
+	assert.NoError(t, err)
+
+	// Mock peer data
+	mockPeer := &Peer{
+		ID:   "peer1",
+		Addr: addr,
+	}
+
+	// Start a mock server to accept connections
+	mockServer, err := net.Listen("tcp", addr)
+	assert.NoError(t, err)
+	defer mockServer.Close()
+
+	// Define a test message to send
+	testMessage := []byte("Test message from peer")
+
+	// Start a goroutine to handle incoming connections and send a message
+	go func() {
+		conn, err := mockServer.Accept()
+		assert.NoError(t, err)
+		defer conn.Close()
+
+		// Send test message to the connection
+		_, err = conn.Write(testMessage)
+		assert.NoError(t, err)
+	}()
+
+	// Establish a connection for the mock peer
+	conn, err := net.Dial("tcp", addr)
+	assert.NoError(t, err)
+	tn.peers[mockPeer.ID] = conn
+
+	// Call Receive to retrieve the message
+	receivedMessage, receivedPeer, err := tn.Receive()
+
+	// Assertions
+	assert.NoError(t, err)
+	assert.NotNil(t, receivedMessage)
+	assert.Equal(t, testMessage, receivedMessage)
+	assert.NotNil(t, receivedPeer)
+	assert.Equal(t, mockPeer.ID, receivedPeer.ID)
+	assert.Equal(t, mockPeer.Addr, receivedPeer.Addr)
+}
