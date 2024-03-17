@@ -32,7 +32,20 @@ func (tn *TCPNetwork) Receive() ([]byte, *Peer, error) {
 			return nil, nil, err
 		}
 		// For simplicity, assume all messages come from the same peer for now
-		return buffer[:n], nil, nil
+
+		// Get the peer associated with the connection
+		var peer *Peer
+		for id, c := range tn.peers {
+			if c == conn {
+				peer = &Peer{ID: id, Addr: conn.RemoteAddr().String()}
+				break
+			}
+		}
+		if peer == nil {
+			return nil, nil, fmt.Errorf("failed to identify peer for connection")
+		}
+
+		return buffer[:n], peer, nil
 	}
 	return nil, nil, fmt.Errorf("no connected peers")
 }
