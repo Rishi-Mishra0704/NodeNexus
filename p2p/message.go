@@ -8,44 +8,35 @@ import (
 func (tn *TCPNetwork) Send(peer *Peer, message []byte) error {
 	// Check if the peer is connected
 	conn, ok := tn.peers[peer.ID]
-	if !ok {
-		// If not connected, return an error
-		return fmt.Errorf("peer not connected: %s", peer.ID)
+	if !ok || conn == nil {
+		// If not connected or connection is nil, return an error
+		return fmt.Errorf("peer not connected or connection is nil: %s", peer.ID)
 	}
 
-	// Ensure the connection is not nil before writing to it
-	if conn == nil {
-		return fmt.Errorf("nil connection for peer: %s", peer.ID)
+	// Send the message through the peer's message channel
+	select {
+	case peer.Message <- message:
+		return nil
+	default:
+		// If the message channel is full, consider it as a write error
+		delete(tn.peers, peer.ID)
+		return fmt.Errorf("error sending message to peer %s: message channel full", peer.ID)
 	}
-
-	// Write the message to the peer connection
-	_, err := conn.Write(message)
-	return err
 }
 
 // Receive receives a message from a peer in the network.
 func (tn *TCPNetwork) Receive() ([]byte, *Peer, error) {
-	for _, conn := range tn.peers {
+	for id, conn := range tn.peers {
 		buffer := make([]byte, 1024)
 		n, err := conn.Read(buffer)
 		if err != nil {
 			return nil, nil, err
 		}
-		// For simplicity, assume all messages come from the same peer for now
 
 		// Get the peer associated with the connection
-		var peer *Peer
-		for id, c := range tn.peers {
-			if c == conn {
-				peer = &Peer{ID: id, Addr: conn.RemoteAddr().String()}
-				break
-			}
-		}
-		if peer == nil {
-			return nil, nil, fmt.Errorf("failed to identify peer for connection")
-		}
+		peer := &Peer{ID: id, Addr: conn.RemoteAddr().String()}
 
 		return buffer[:n], peer, nil
 	}
-	return nil, nil, fmt.Errorf("no connected peers")
+	return nil, nil, fmt.Errorf("no messages received")
 }

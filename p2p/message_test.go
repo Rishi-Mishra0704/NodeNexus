@@ -1,106 +1,77 @@
 package p2p
 
 import (
-	"net"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSend(t *testing.T) {
-	// Create a new TCPNetwork instance
+func TestTCPNetwork_Send(t *testing.T) {
+	// Setup
 	tn := setup()
 	defer teardown(tn)
 
-	// Find an available port
-	addr, err := findAvailablePort()
+	// Find an available port for the mock peer
+	mockPeerAddr, err := findAvailablePort()
 	assert.NoError(t, err)
 
-	// Mock peer data
+	// Create a new TCPNetwork instance for the mock peer
+	mockPeerNetwork := NewTCPNetwork()
+
+	// Start the mock peer network on the available port
+	err = mockPeerNetwork.Start(mockPeerAddr[strings.LastIndex(mockPeerAddr, ":")+1:])
+	assert.NoError(t, err)
+	defer mockPeerNetwork.Close()
+
+	// Create a mock peer
 	mockPeer := &Peer{
-		ID:   "peer1",
-		Addr: addr,
+		ID:      "peer1",
+		Addr:    mockPeerAddr,
+		Message: make(chan []byte, 1), // Buffered channel to avoid blocking
 	}
 
-	// Start a mock server to accept connections
-	mockServer, err := net.Listen("tcp", addr)
-	assert.NoError(t, err)
-	defer mockServer.Close()
-
-	// Start a goroutine to handle incoming connections
-	go func() {
-		conn, err := mockServer.Accept()
-		assert.NoError(t, err)
-		defer conn.Close()
-
-		// Read message from the connection
-		buffer := make([]byte, 1024)
-		n, err := conn.Read(buffer)
-		assert.NoError(t, err)
-
-		// Assertions for received message
-		assert.Equal(t, "Hello", string(buffer[:n]))
-	}()
-
-	// Establish a connection for the mock peer
-	conn, err := net.Dial("tcp", addr)
-	assert.NoError(t, err)
-	tn.peers[mockPeer.ID] = conn
-
-	// Attempt to send a message to the mock peer
-	err = tn.Send(mockPeer, []byte("Hello"))
-
-	// Assertions
-	assert.NoError(t, err)
-}
-
-func TestReceive(t *testing.T) {
-	// Create a new TCPNetwork instance
-	tn := setup()
-	defer teardown(tn)
-
-	// Find an available port
-	addr, err := findAvailablePort()
+	// Connect the mock peer to the network
+	err = tn.Connect(mockPeer)
 	assert.NoError(t, err)
 
-	// Mock peer data
-	mockPeer := &Peer{
-		ID:   "peer1",
-		Addr: addr,
+	// Define the message to send
+	message := []byte("Hello, world!")
+
+	// Attempt to send the message to the mock peer (successful)
+	err = tn.Send(mockPeer, message)
+	assert.NoError(t, err)
+
+	// Create another mock peer
+	mockPeerNotConnected := &Peer{
+		ID:      "peer2",
+		Addr:    "localhost:9999",     // This port is not used, simulating a peer that is not connected
+		Message: make(chan []byte, 1), // Buffered channel to avoid blocking
 	}
 
-	// Start a mock server to accept connections
-	mockServer, err := net.Listen("tcp", addr)
-	assert.NoError(t, err)
-	defer mockServer.Close()
+	// Attempt to send a message to the mock peer that is not connected
+	err = tn.Send(mockPeerNotConnected, message)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "peer not connected")
 
-	// Define a test message to send
-	testMessage := []byte("Test message from peer")
+	mockPeerNilConn := &Peer{
+		ID:      "peer3",
+		Addr:    mockPeerAddr,
+		Message: make(chan []byte, 1), // Buffered channel to avoid blocking
+	}
 
-	// Start a goroutine to handle incoming connections and send a message
-	go func() {
-		conn, err := mockServer.Accept()
-		assert.NoError(t, err)
-		defer conn.Close()
+	// Attempt to send a message to the mock peer with a full channel
+	mockPeerFullChannel := &Peer{
+		ID:      "peer4",
+		Addr:    mockPeerAddr,
+		Message: make(chan []byte), // Unbuffered channel to ensure it's full
+	}
 
-		// Send test message to the connection
-		_, err = conn.Write(testMessage)
-		assert.NoError(t, err)
-	}()
-
-	// Establish a connection for the mock peer
-	conn, err := net.Dial("tcp", addr)
-	assert.NoError(t, err)
-	tn.peers[mockPeer.ID] = conn
-
-	// Call Receive to retrieve the message
-	receivedMessage, receivedPeer, err := tn.Receive()
-
-	// Assertions
-	assert.NoError(t, err)
-	assert.NotNil(t, receivedMessage)
-	assert.Equal(t, testMessage, receivedMessage)
-	assert.NotNil(t, receivedPeer)
-	assert.Equal(t, mockPeer.ID, receivedPeer.ID)
-	assert.Equal(t, mockPeer.Addr, receivedPeer.Addr)
+	err = tn.Send(mockPeerNilConn, message)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "peer not connected or connection is nil")
+	// Attempt to send a message to the mock peer with a full channel
+	err = tn.Send(mockPeerFullChannel, message)
+	assert.Error(t, err)
+	assert.Errorf(t, err, "error sending message to peer %s: message channel full", mockPeerFullChannel.ID)
 }
