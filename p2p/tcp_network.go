@@ -46,13 +46,17 @@ func (tn *TCPNetwork) Close() error {
 	if tn.Listener != nil {
 		// Close all peer connections
 		for _, conn := range tn.peers {
-			conn.Close()
+			if err := conn.Close(); err != nil {
+				log.Printf("error closing connection: %v\n", err)
+			}
 		}
 
 		// Close the listener and reset it to nil
 		err := tn.Listener.Close()
 		tn.Listener = nil // Reset the listener
-		return err
+		if err != nil {
+			return fmt.Errorf("error closing listener: %w", err)
+		}
 	}
 	return nil
 }
