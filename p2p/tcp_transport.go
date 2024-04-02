@@ -19,7 +19,7 @@ type TCPPeer struct {
 
 type TcpTransportOpts struct {
 	ListenAddr    string
-	HandShakeFunc HandShakeFunc
+	HandShakeFunc func(net.Conn) Peer
 	OnPeer        func(Peer) error
 }
 
@@ -78,26 +78,30 @@ func (t *TcpTransport) startAcceptLoop() {
 
 	}
 }
-
 func (t *TcpTransport) handleConn(conn net.Conn) {
-
 	var err error
 	defer func() {
 		fmt.Printf("Dropping peer connection%s", err)
 		conn.Close()
 	}()
+
+	// Create a new peer
 	peer := NewTcpPeer(conn, true)
 
-	if err := t.HandShakeFunc(peer); err != nil {
-
-		return
+	// Perform handshake and log the result
+	handShakePeer := t.HandShakeFunc(peer.conn)
+	if handShakePeer != nil {
+		fmt.Printf("Handshake successful for peer: %v\n", handShakePeer)
+	} else {
+		fmt.Println("Handshake failed")
 	}
 
+	// Call OnPeer callback if provided
 	if t.OnPeer != nil {
 		if err := t.OnPeer(peer); err != nil {
 			return
 		}
 	}
-	// Read loop
 
+	// Read loop
 }

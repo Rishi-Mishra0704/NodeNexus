@@ -9,7 +9,8 @@ import (
 func main() {
 	// Define the TCP transport options
 	tcpOpts := p2p.TcpTransportOpts{
-		ListenAddr: ":8080", // Listening on port 8080
+		ListenAddr:    ":8080", // Listening on port 8080
+		HandShakeFunc: p2p.DefaultHandShakeFunc,
 	}
 
 	// Create a new TCP transport instance
