@@ -1,59 +1,103 @@
 package p2p
 
 import (
-	"errors"
 	"fmt"
+	"log"
 	"net"
 )
 
-var _ Transport = (*TCPTransport)(nil)
+// TCPPeer represents the remote node over a TCP established connection
+type TCPPeer struct {
 
-type TCPTransport struct {
-	// ListenAddress and ListenPort can be used for listening for incoming connections
-	ListenAddress string
-	ListenPort    int
+	// conn is the underlying connection of the peer
+	conn net.Conn
+
+	// if we dial and retrieve a conn => outbound == true
+	// if we accept and retrieve a conn => outbound == false
+	outbound bool
 }
 
-func (t *TCPTransport) Connect(peer Peer, protocol Protocol) error {
-	// Ensure protocol is TCP
-	if protocol != TCP {
-		return errors.New("invalid protocol for TCP transport")
-	}
+type TcpTransportOpts struct {
+	ListenAddr    string
+	HandShakeFunc HandShakeFunc
+	OnPeer        func(Peer) error
+}
 
-	// Validate peer's address and port
-	if peer.Address == "" {
-		return errors.New("peer address cannot be empty")
-	}
-	if peer.Port <= 0 || peer.Port > 65535 {
-		return errors.New("invalid peer port")
-	}
+type TcpTransport struct {
+	TcpTransportOpts
+	listener net.Listener
+	MsgCh    chan Message
+}
 
-	// Construct peer address
-	address := fmt.Sprintf("%s:%d", peer.Address, peer.Port)
+func NewTcpPeer(conn net.Conn, outbound bool) *TCPPeer {
+	return &TCPPeer{
+		conn:     conn,
+		outbound: outbound,
+	}
+}
 
-	// Establish TCP connection
-	conn, err := net.Dial(string(protocol), address)
+func (p *TCPPeer) Close() error {
+	return p.conn.Close()
+}
+
+func NewTCPTransport(opts TcpTransportOpts) *TcpTransport {
+	return &TcpTransport{
+		TcpTransportOpts: opts,
+		MsgCh:            make(chan Message),
+	}
+}
+
+// Consume implements the transport interface, which will return read-only channel
+// for reading the message recieved from another peer in the network
+func (t *TcpTransport) Consume() <-chan Message {
+	return t.MsgCh
+}
+
+func (t *TcpTransport) ListenAndAccept() error {
+
+	var err error
+	t.listener, err = net.Listen("tcp", t.ListenAddr)
 	if err != nil {
-		return fmt.Errorf("failed to connect to peer %s: %w", peer.ID, err)
+		log.Fatal(err)
 	}
-	defer conn.Close()
 
-	// Connection successful, handle further logic if needed
+	go t.startAcceptLoop()
 
 	return nil
 }
 
-// Disconnect closes the connection with a peer.
-func (t *TCPTransport) Disconnect(peer Peer) error {
-	return nil
+func (t *TcpTransport) startAcceptLoop() {
+	for {
+		conn, err := t.listener.Accept()
+		if err != nil {
+			fmt.Printf("TCP accept error %s\n", err)
+		}
+		fmt.Printf("New incoming connection %v\n", conn)
+
+		go t.handleConn(conn)
+
+	}
 }
 
-// SendData sends data to a peer over the established connection.
-func (t *TCPTransport) SendData(peer Peer, data []byte) error {
-	return nil
-}
+func (t *TcpTransport) handleConn(conn net.Conn) {
 
-// ReceiveData receives data from a peer over the established connection.
-func (t *TCPTransport) ReceiveData() ([]byte, Peer, error) {
-	return nil, Peer{}, nil
+	var err error
+	defer func() {
+		fmt.Printf("Dropping peer connection%s", err)
+		conn.Close()
+	}()
+	peer := NewTcpPeer(conn, true)
+
+	if err := t.HandShakeFunc(peer); err != nil {
+
+		return
+	}
+
+	if t.OnPeer != nil {
+		if err := t.OnPeer(peer); err != nil {
+			return
+		}
+	}
+	// Read loop
+
 }
