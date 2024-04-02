@@ -2,6 +2,7 @@ package p2p
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net"
 )
@@ -17,9 +18,12 @@ type TCPPeer struct {
 	outbound bool
 }
 
+var _ Transport = (*TcpTransport)(nil)
+
 type TcpTransportOpts struct {
 	ListenAddr    string
 	HandShakeFunc func(net.Conn) Peer
+	Decoder       Decoder
 	OnPeer        func(Peer) error
 }
 
@@ -96,12 +100,28 @@ func (t *TcpTransport) handleConn(conn net.Conn) {
 		fmt.Println("Handshake failed")
 	}
 
-	// Call OnPeer callback if provided
-	if t.OnPeer != nil {
-		if err := t.OnPeer(peer); err != nil {
+	// Read loop
+	for {
+		msg := Message{}
+		if err := t.Decoder.Decode(conn, &msg); err != nil {
+			if err == io.EOF {
+				fmt.Println("Connection closed by peer")
+			} else {
+				fmt.Printf("Error reading message: %v\n", err)
+			}
+			return
+		}
+
+		// Send the decoded message to the channel for further processing
+		t.MsgCh <- msg
+		t.Consume()
+
+		fmt.Printf("Received message: %s\n", msg.Payload)
+		// Send the decoded message back to the client
+		_, err := conn.Write(msg.Payload)
+		if err != nil {
+			fmt.Printf("Error sending message to client: %v\n", err)
 			return
 		}
 	}
-
-	// Read loop
 }
