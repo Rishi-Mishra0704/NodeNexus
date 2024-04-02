@@ -7,5 +7,6 @@ import "net"
 
 type Message struct {
 	From    net.Addr
+	To      net.Addr
 	Payload []byte
 }
