@@ -12,8 +12,9 @@ const (
 )
 
 type Command struct {
-	ID     CommandID
-	Client *Client
-
-	Args []string
+	ID            CommandID
+	Client        *Client
+	Args          []string
+	RecipientName string
+	Message       string
 }

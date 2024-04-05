@@ -10,8 +10,14 @@ import (
 type Client struct {
 	Conn     net.Conn
 	Name     string
-	Room     *Room
 	Commands chan<- Command
+}
+
+func NewClient(conn net.Conn, commands chan<- Command) *Client {
+	return &Client{
+		Conn:     conn,
+		Commands: commands,
+	}
 }
 
 func (c *Client) ReadInput() {
@@ -33,22 +39,18 @@ func (c *Client) ReadInput() {
 				Client: c,
 				Args:   args,
 			}
-		case "/join":
-			c.Commands <- Command{
-				ID:     CMD_JOIN,
-				Client: c,
-				Args:   args,
-			}
-		case "/rooms":
-			c.Commands <- Command{
-				ID:     CMD_ROOMS,
-				Client: c,
-			}
 		case "/msg":
-			c.Commands <- Command{
-				ID:     CMD_MSG,
-				Client: c,
-				Args:   args,
+			if len(args) >= 3 {
+				recipientName := args[1]
+				message := strings.Join(args[2:], " ")
+				c.Commands <- Command{
+					ID:            CMD_MSG,
+					Client:        c,
+					RecipientName: recipientName,
+					Message:       message,
+				}
+			} else {
+				c.Err(fmt.Errorf("usage: /msg <recipient_name> <message>"))
 			}
 		case "/quit":
 			c.Commands <- Command{
