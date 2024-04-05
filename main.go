@@ -2,46 +2,31 @@ package main
 
 import (
 	"log"
+	"net"
 
 	"github.com/Rishi-Mishra0704/NodeNexus/p2p"
 )
 
 func main() {
-	// Define the TCP transport options
-	tcpOpts := p2p.TcpTransportOpts{
-		ListenAddr:    ":8080", // Listening on port 8080
-		HandShakeFunc: p2p.DefaultHandShakeFunc,
-		Decoder:       p2p.DefaultDecoder{},
+	s := p2p.NewServer()
+	go s.Run()
+
+	listener, err := net.Listen("tcp", ":8888")
+	if err != nil {
+		log.Fatalf("unable to start server: %s", err.Error())
 	}
 
-	// Create a new TCP transport instance
-	tcpTransport := p2p.NewTCPTransport(tcpOpts)
+	defer listener.Close()
+	log.Printf("server started on :8888")
 
-	// Start listening for incoming connections
-	if err := tcpTransport.ListenAndAccept(); err != nil {
-		log.Fatalf("Failed to start TCP transport: %v", err)
-	}
-
-	// Log a message indicating that the TCP transport is listening
-	log.Println("TCP transport started and listening for incoming connections on port 8080")
-	// Create a goroutine to consume messages from the transport
-	go func() {
-		for {
-			select {
-			case msg := <-tcpTransport.Consume():
-				log.Printf("Received message: %s\n", msg.Payload)
-			}
+	for {
+		conn, err := listener.Accept()
+		if err != nil {
+			log.Printf("failed to accept connection: %s", err.Error())
+			continue
 		}
-	}()
-	// Send a dummy message to the message channel
-	dummyMessage := p2p.Message{
-		From:    nil,                               // Set the sender address to nil or specify the actual address
-		To:      nil,                               // Set the recipient address to nil or specify the actual address
-		Payload: []byte("This is a dummy message"), // Set the payload to any desired value
-	}
-	log.Printf("Sending dummy message: %v", dummyMessage)
-	tcpTransport.MsgCh <- dummyMessage
 
-	// Keep the main goroutine alive
-	select {}
+		c := s.NewClient(conn)
+		go c.ReadInput()
+	}
 }
