@@ -48,7 +48,7 @@ func (s *Server) NewClient(conn net.Conn) *Client {
 
 func (s *Server) Name(c *Client, Args []string) {
 	if len(Args) < 2 {
-		c.Msg("nick is required. usage: /nick Name")
+		c.Msg("name is required. usage: /name Name")
 		return
 	}
 
